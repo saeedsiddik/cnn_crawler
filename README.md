@@ -2,9 +2,12 @@
 
 Newspaper data crawler for Asgaard Lab Assignment
 
+Topic for Article Crawl: "Covid-19"
+
 Crawler Development: 	Python3
 Database :			MySQL 
 Data Visualization:		PHP
+
 asgaard_crawler.py
 Python3 has been used to develop crawler specially article from newspaper. Two different newspapers are selected for crawling named as CNN (https://edition.cnn.com) and Daily Star BD (https://www.thedailystar.net/). However, this code has been designed as a generic one, where any other newspaper link can be used to crawl article. A library has been used to build with article of the targeted newspaper named as Newspaper3k which can be installed via pip in Linux. 
 
