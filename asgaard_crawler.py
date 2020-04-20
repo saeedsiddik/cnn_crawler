@@ -4,7 +4,6 @@ import newspaper
 
 #mysql database connection 
 def database_connection_start(host, user, password, database_name):
-#	db = pymysql.connect("localhost","root","1987","crawler" )
 	db = pymysql.connect(host, user, password, database_name)
 	cursor = db.cursor()
 	cursor.execute("SELECT VERSION()")
@@ -25,49 +24,58 @@ def article_preprocessing_for_database(text_data):
 
 def newspaper_article_build(newspaper_url):
 	#newspaper content loading
-#	cnn_paper = newspaper.build('https://edition.cnn.com', memoize_articles=False)
 	newspaper_content_build = newspaper.build(newspaper_url, memoize_articles=False)
 	return newspaper_content_build
 
 def individual_article_process_for_db_store(db, table_name, newspaper_content_build, article_topic_to_show, number_of_article_to_show):
 	news_counter = 0
+
+	database_clear(db, table_name)
+
 	cursor = db.cursor()
 	for article in newspaper_content_build.articles[0:10]:
 		if (news_counter >=number_of_article_to_show):
 		    break
 		try:
-			article.download()
-			article.parse()
-			if article_topic_to_show in article.text:
-				news_counter += 1
-				id = news_counter
-				title = article_preprocessing_for_database(article.title)
-				description = article_preprocessing_for_database(article.text)
-				url = article.url
-
-				article_insert_in_database(db, table_name, id,title,description, url)
+		    article.download()
+		    article.parse()
+		    if article_topic_to_show in article.text:
+		        news_counter += 1
+		        id = news_counter
+		        title = article_preprocessing_for_database(article.title)
+		        description = article_preprocessing_for_database(article.text)
+		        url = article.url
+		        authors = article_preprocessing_for_database(', '.join([str(elem) for elem in article.authors]))
+		        article_insert_in_database(db, table_name, id,title,description, url, authors)
 		except Exception as e:
-			print (e)
-			continue
+		    print (e)
+		    continue
+	print ("END")
 
 
-def article_insert_in_database(db, table_name, id,title,description, url):
+def article_insert_in_database(db, table_name, id,title,description, url, authors):
 #insert cnn article to database table
        
 	cursor = db.cursor()
-	sql = "INSERT INTO cnn_news(id, title, description) VALUES ('%s','%s','%s')"%(id,title,description)
+	sql = "INSERT INTO %s(id, title, description, authors) VALUES ('%s','%s','%s', '%s')"%(table_name,id, title,description, authors)
 	try:
 		cursor.execute(sql)
 		db.commit()
+		print("OK; "+ table_name+ "; "  +title)
 	except:
-		print ("problem in insert %s"%title)
-		print (description)
+		print ("Problem; "+ table_name+ "; "  +title)
+# 		print (description)
 		db.rollback()
 		
-	print (id)
-	print (url)
-	print (title)
 
+def database_clear(db, table_name):
+    cursor = db.cursor()
+    sql1 = "TRUNCATE TABLE %s"%table_name 
+    try:
+        cursor.execute(sql1)
+        db.commit()
+    except:
+        db.rollback()
 
 
 # show data for checking 
@@ -98,7 +106,9 @@ def main():
 	db = database_connection_start("localhost","root","1987","crawler")
 	individual_article_process_for_db_store(db, "cnn_news", newspaper_content_build, "Covid-19", 25)
 	
+	database_connection_close(db)
 	print("Program end")
 
 if __name__ == '__main__':
     main()
+
