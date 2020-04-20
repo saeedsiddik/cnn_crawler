@@ -1,4 +1,6 @@
-
+'''
+Author: Md Saeed Siddik, IIT DU, BD
+'''
 import pymysql
 import newspaper
 
@@ -28,13 +30,12 @@ def newspaper_article_build(newspaper_url):
 
 def individual_article_process_for_db_store(db, table_name, newspaper_content_build, article_topic_to_show, number_of_article_to_show):
 	news_counter = 0	# to check the maximum number of article in show	
-	database_clear(db, table_name)	# clear the database table content for storing fresh article 
 	cursor = db.cursor()
 	
 	for article in newspaper_content_build.articles:		# loop for investigating entire articles
 		if (news_counter >=number_of_article_to_show):		# check the maximum data 
 		    break
-		try:							# handla exception 
+		try:							# handle exception 
 		    article.download()					# download the article details
 		    article.parse()					# parse the article 
 		    if article_topic_to_show in article.text:		# check the targeted topic in article
@@ -43,7 +44,7 @@ def individual_article_process_for_db_store(db, table_name, newspaper_content_bu
 		        title = article_preprocessing_for_database(article.title)
 		        description = article_preprocessing_for_database(article.text)
 		        url = article.url
-		        authors = article_preprocessing_for_database(', '.join([str(elem) for elem in article.authors]))	#hence, authors is al ist, it needed to ve converted to String
+		        authors = article_preprocessing_for_database(', '.join([str(elem) for elem in article.authors]))	#hence, authors is a list, it it needed to convert a String
 		        article_insert_in_database(db, table_name, id,title,description, url, authors)		# call database insertion query
 		except Exception as e:
 		    print (e)
@@ -96,15 +97,22 @@ def database_connection_close(db):
 
 def main():
 	print ("program start for article crawler in asgaard lab assignment")
-	newspaper_url = "https://edition.cnn.com"				# targeted newspaper URL for articel collection
-	newspaper_content_build = newspaper_article_build(newspaper_url)	# build the newspaper URL using python-newspaper3k library
+	topic = "Covid-19"
+	
+	host = "localhost"
+	user = "root"
+	password = "1987"
+	database_name = "crawler"
+	table_name = "news"
+	
+	db = database_connection_start(host,user,password,database_name)	# connect MySQL database with credintial 
+	database_clear(db, table_name)						# clear the database table content for storing fresh article 
 
-	db = database_connection_start("localhost","root","1987","crawler")	# connect MySQL database with credintial 
-	
-	topic_for_search = "Covid-19"
-	number_of_article_to_show = 25
-	individual_article_process_for_db_store(db, "cnn_news", newspaper_content_build, topic_for_search, number_of_article_to_show)	
-	
+	newsList = [["cnn", "https://edition.cnn.com"], ["dailystar", "https://www.thedailystar.net/"]]	# targeted newspaper URL for articel collection
+	for newsInfo in newsList:
+		newspaper_content_build = newspaper_article_build(newsInfo[1])		# build the newspaper URL using python-newspaper3k library
+		individual_article_process_for_db_store(db, table_name, newsInfo[0], newspaper_content_build, topic, 25)
+
 	database_connection_close(db)
 	print("Program end")
 
