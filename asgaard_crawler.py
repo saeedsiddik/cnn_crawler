@@ -59,9 +59,9 @@ def article_insert_in_database(db, table_name, newspaper_name, id,title,descript
 	try:
 		cursor.execute(sql)
 		db.commit()
-		print("OK; "+ table_name+ "; "  +title)
+		print("OK; "+ newspaper_name+ "; "  +title)
 	except:
-		print ("Problem; "+ table_name+ "; "  +title)
+		print ("Problem; "+ newspaper_name+ "; "  +title)
 # 		print (description)
 		db.rollback()
 		
