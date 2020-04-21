@@ -28,7 +28,7 @@ def newspaper_article_build(newspaper_url):
 	newspaper_content_build = newspaper.build(newspaper_url, memoize_articles=False)
 	return newspaper_content_build
 
-def individual_article_process_for_db_store(db, table_name, newspaper_content_build, article_topic_to_show, number_of_article_to_show):
+def individual_article_process_for_db_store(db, table_name, newspaper_name, newspaper_content_build, article_topic_to_show, number_of_article_to_show):
 	news_counter = 0	# to check the maximum number of article in show	
 	cursor = db.cursor()
 	
@@ -45,17 +45,17 @@ def individual_article_process_for_db_store(db, table_name, newspaper_content_bu
 		        description = article_preprocessing_for_database(article.text)
 		        url = article.url
 		        authors = article_preprocessing_for_database(', '.join([str(elem) for elem in article.authors]))	#hence, authors is a list, it it needed to convert a String
-		        article_insert_in_database(db, table_name, id,title,description, url, authors)		# call database insertion query
+		        article_insert_in_database(db, table_name, newspaper_name, id,title,description, url, authors)		# call database insertion query
 		except Exception as e:
 		    print (e)
 		    continue
 	print ("END")
 
 #insert newspaper article to database table
-def article_insert_in_database(db, table_name, id,title,description, url, authors):
+def article_insert_in_database(db, table_name, newspaper_name, id,title,description, url, authors):
       
 	cursor = db.cursor()
-	sql = "INSERT INTO %s(id, title, description, authors) VALUES ('%s','%s','%s', '%s')"%(table_name,id, title,description, authors)
+	sql = "INSERT INTO %s(id, title, description, authors,type) VALUES ('%s','%s','%s', '%s','%s')"%(table_name,id, title,description, authors, newspaper_name)
 	try:
 		cursor.execute(sql)
 		db.commit()
